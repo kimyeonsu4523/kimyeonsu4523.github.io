@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김연수 | Future Semiconductor Engineer</title>
+    <!-- Tailwind CSS (스타일링) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (폰트) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Font Awesome (아이콘) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 커스텀 설정 - Cleanroom Theme */
+        :root {
+            --primary-blue: #0055ff;
+            --tech-cyan: #00d2ff;
+            --wafer-bg: #2d3748;
+            --bg-main: #ffffff;
+            --text-main: #111827;
+            --text-sub: #64748b;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Noto Sans KR', sans-serif;
+            margin: 0;
+            overflow: hidden; /* 전체 페이지 스크롤 막음 (가로 스크롤 구현 때문) */
+            user-select: none;
+        }
+
+        /* 배경 그리드 */
+        .bg-grid {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                linear-gradient(rgba(0, 85, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 85, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1; pointer-events: none;
+        }
+
+        /* 폰트 오버라이드 */
+        .font-tech { font-family: 'Orbitron', sans-serif; }
+        .font-mono-tech { font-family: 'Share Tech Mono', monospace; }
+
+        /* 가로 스크롤 컨테이너 */
+        #scroll-container {
+            display: flex;
+            flex-direction: row;
+            /* [수정] 섹션 5개 * 100vw */
+            width: 500vw;
+            height: 100vh;
+            will-change: transform;
+            transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .section {
+            width: 100vw; height: 100vh;
+            flex-shrink: 0; position: relative;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+
+        /* [NEW] Intro Circuit Canvas */
+        #intro-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 0; pointer-events: none;
+        }
+
+        /* [NEW] Glitch Text Effect */
+        .glitch-wrapper { position: relative; display: inline-block; }
+        .glitch-text {
+            position: relative; z-index: 1;
+        }
+        .glitch-text::before, .glitch-text::after {
+            content: attr(data-text);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-main);
+        }
+        .glitch-text:hover::before {
+            left: 2px; text-shadow: -1px 0 #ff00c1;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+        .glitch-text:hover::after {
+            left: -2px; text-shadow: -1px 0 #00fff9;
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+        @keyframes glitch-anim {
+            0% { clip: rect(30px, 9999px, 10px, 0); }
+            20% { clip: rect(85px, 9999px, 90px, 0); }
+            40% { clip: rect(10px, 9999px, 60px, 0); }
+            60% { clip: rect(50px, 9999px, 20px, 0); }
+            80% { clip: rect(20px, 9999px, 80px, 0); }
+            100% { clip: rect(70px, 9999px, 30px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(10px, 9999px, 90px, 0); }
+            20% { clip: rect(50px, 9999px, 10px, 0); }
+            40% { clip: rect(80px, 9999px, 30px, 0); }
+            60% { clip: rect(20px, 9999px, 50px, 0); }
+            80% { clip: rect(90px, 9999px, 20px, 0); }
+            100% { clip: rect(30px, 9999px, 70px, 0); }
+        }
+
+        /* [NEW] Floating Process Nodes */
+        .process-node {
+            position: absolute;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--text-sub);
+            border-radius: 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            z-index: 20;
+            animation: float 6s ease-in-out infinite;
+        }
+        .process-node:hover {
+            transform: scale(1.1);
+            border-color: var(--primary-blue);
+            color: var(--primary-blue);
+        }
+        .process-node.active {
+            background: var(--primary-blue);
+            color: white;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 15px var(--primary-blue);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* [NEW] Intro Control Panel */
+        .control-panel {
+            margin-top: 40px;
+            padding: 15px 25px;
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            display: flex; gap: 15px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.8), 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .panel-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            cursor: pointer;
+        }
+        .panel-btn:active .btn-face { transform: translateY(2px); box-shadow: none; }
+        .btn-face {
+            width: 50px; height: 50px;
+            background: #e2e8f0;
+            border: 1px solid #94a3b8;
+            border-radius: 8px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 1.2rem; color: #64748b;
+            box-shadow: 0 4px 0 #94a3b8;
+            transition: all 0.1s;
+        }
+        .panel-btn.active .btn-face {
+            background: var(--tech-cyan); color: white; border-color: #0ea5e9;
+            box-shadow: 0 4px 0 #0284c7; text-shadow: 0 0 5px white;
+        }
+        .btn-label { font-size: 0.6rem; font-weight: bold; color: #64748b; letter-spacing: 1px; }
+
+        /* [NEW] Timeline Styles & Animations */
+        .timeline-container {
+            position: relative;
+            padding: 20px 0;
+            width: 100%;
+            /* [수정] 세로 스크롤이 작동하도록 높이 제한 및 overflow 설정 */
+            max-height: 80vh;
+            overflow-y: auto;
+            /* 스크롤바 커스텀 */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-blue) #e2e8f0;
+            overscroll-behavior: contain; /* 내부 스크롤이 끝나도 부모로 전파되지 않게 함 */
+        }
+        
+        /* 웹킷 브라우저 스크롤바 스타일링 */
+        .timeline-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .timeline-container::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 3px;
+        }
+        .timeline-container::-webkit-scrollbar-thumb {
+            background-color: var(--primary-blue);
+            border-radius: 3px;
+        }
+        
+        .timeline-line {
+            position: absolute; left: 50%; top: 0; bottom: 0; width: 2px;
+            background: #e2e8f0; transform: translateX(-50%);
+            z-index: 0;
+            /* 컨텐츠 길이에 맞게 늘어나도록 */
+            height: 100%; 
+        }
+        
+        .timeline-item {
+            position: relative; margin-bottom: 40px; width: 100%;
+            display: flex; justify-content: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        /* 애니메이션 활성화 클래스 */
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-dot {
+            position: absolute; left: 50%; top: 0; width: 16px; height: 16px;
+            background: var(--primary-blue); border: 4px solid white;
+            border-radius: 50%; box-shadow: 0 0 0 2px #e2e8f0;
+            transform: translateX(-50%); z-index: 10;
+        }
+        .timeline-content {
+            width: 45%; background: white; padding: 20px;
+            border: 1px solid #e2e8f0; border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            position: relative;
+            transition: transform 0.3s;
+        }
+        .timeline-content:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+            border-color: var(--primary-blue);
+        }
+        .timeline-content::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--tech-cyan); border-radius: 4px 0 0 4px;
+        }
+        
+        /* 좌우 배치 */
+        .timeline-item:nth-child(odd) .timeline-content { 
+            margin-right: auto; text-align: right; 
+            border-right: 4px solid var(--tech-cyan); border-left: 1px solid #e2e8f0; 
+        }
+        .timeline-item:nth-child(odd) .timeline-content::before { display: none; }
+        
+        .timeline-item:nth-child(even) .timeline-content { 
+            margin-left: auto; text-align: left; 
+        }
+
+        /* --- 차별화 포인트 1: 웨이퍼 맵 내비게이션 (Wafer Map Nav) --- */
+        .wafer-nav-container {
+            position: fixed; bottom: 30px; right: 30px;
+            z-index: 50;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        
+        .wafer-disk {
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, #1a202c, #4a5568);
+            border-radius: 50%;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .wafer-disk::after {
+            content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+            width: 60px; height: 10px; background: var(--bg-main); z-index: 10;
+        }
+        
+        .wafer-grid {
+            position: absolute; inset: 0;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 10px 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            padding: 15px; gap: 2px;
+        }
+
+        .wafer-chip {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.5s;
+        }
+        .wafer-chip.active {
+            background: var(--tech-cyan);
+            box-shadow: 0 0 10px var(--tech-cyan);
+            border-color: #fff;
+        }
+
+        /* --- 차별화 포인트 2: 수율 카운터 (Yield Counter) --- */
+        .yield-counter {
+            position: fixed; top: 30px; right: 40px;
+            z-index: 50; text-align: right;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .yield-label { font-size: 0.8rem; color: var(--text-sub); margin-bottom: -5px; }
+        .yield-number { font-size: 2.5rem; font-weight: bold; color: var(--primary-blue); letter-spacing: -2px; }
+        .yield-percent { font-size: 1rem; color: var(--primary-blue); }
+
+        /* --- Gemini AI Chat Widget --- */
+        .chat-widget-btn {
+            position: fixed; bottom: 30px; right: 150px;
+            width: 60px; height: 60px;
+            background: var(--primary-blue);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0, 85, 255, 0.3);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-size: 24px; cursor: pointer; z-index: 60;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulse-blue 2s infinite;
+        }
+        .chat-widget-btn:hover { transform: scale(1.1); }
+        @keyframes pulse-blue {
+            0% { box-shadow: 0 0 0 0 rgba(0, 85, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 85, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 85, 255, 0); }
+        }
+
+        .chat-window {
+            position: fixed; bottom: 100px; right: 30px;
+            width: 350px; height: 450px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            z-index: 59;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            transform: translateY(20px); opacity: 0; pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .chat-window.open {
+            transform: translateY(0); opacity: 1; pointer-events: all;
+        }
+        .chat-header {
+            background: var(--primary-blue); color: white; padding: 15px;
+            font-family: 'Orbitron', sans-serif; font-size: 14px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .chat-messages {
+            flex: 1; padding: 15px; overflow-y: auto; background: #f8fafc;
+            display: flex; flex-direction: column; gap: 10px;
+        }
+        .chat-input-area {
+            padding: 10px; border-top: 1px solid #e2e8f0; background: white;
+            display: flex; gap: 5px;
+        }
+        .chat-input {
+            flex: 1; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 20px;
+            font-size: 14px; outline: none;
+        }
+        .chat-input:focus { border-color: var(--primary-blue); }
+        .send-btn {
+            width: 36px; height: 36px; border-radius: 50%; background: var(--tech-cyan);
+            color: white; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
+        .message {
+            max-width: 80%; padding: 8px 12px; border-radius: 12px; font-size: 13px; line-height: 1.4;
+        }
+        .msg-ai { align-self: flex-start; background: white; border: 1px solid #e2e8f0; color: var(--text-main); border-bottom-left-radius: 2px; }
+        .msg-user { align-self: flex-end; background: var(--primary-blue); color: white; border-bottom-right-radius: 2px; }
+        .typing-indicator { font-size: 12px; color: #94a3b8; margin-left: 5px; display: none; }
+
+        /* --- 게임형 인터랙티브 카드 --- */
+        .game-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            position: relative; overflow: hidden;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            height: 340px;
+        }
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary-blue);
+        }
+
+        .card-face-locked {
+            position: absolute; inset: 0; z-index: 20;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #f8fafc; transition: opacity 0.3s;
+        }
+        .card-face-process {
+            position: absolute; inset: 0; z-index: 30;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: var(--primary-blue); color: white;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        .card-face-content {
+            position: absolute; inset: 0; z-index: 10; padding: 2rem;
+            display: flex; flex-direction: column; justify-content: center;
+            opacity: 0; transform: scale(0.95); transition: all 0.5s ease;
+        }
+        
+        .game-card.is-processing .card-face-process { opacity: 1; }
+        .game-card.is-unlocked { cursor: default; border: 2px solid var(--tech-cyan); }
+        .game-card.is-unlocked .card-face-locked { opacity: 0; pointer-events: none; }
+        .game-card.is-unlocked .card-face-content { opacity: 1; transform: scale(1); }
+
+        .circuit-overlay {
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10 L20 10 L20 30' stroke='rgba(0,255,255,0.3)' fill='none' stroke-width='1'/%3E%3Cpath d='M80 10 L70 10 L70 40' stroke='rgba(0,255,255,0.3)' fill='none' stroke-width='1'/%3E%3Ccircle cx='20' cy='30' r='2' fill='rgba(0,255,255,0.3)'/%3E%3C/svg%3E%3C/svg%3E");
+            opacity: 0.3; pointer-events: none; mix-blend-mode: overlay;
+        }
+
+        .conveyor-line {
+            position: absolute; bottom: 80px; left: 0; width: 100%; height: 1px;
+            background: #e2e8f0; z-index: 0;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            body { overflow-y: auto; overflow-x: hidden; }
+            #scroll-container { flex-direction: column; width: 100vw; height: auto; transform: none !important; }
+            .section { height: 100vh; width: 100vw; }
+            .wafer-nav-container, .yield-counter { display: none; }
+            .game-card { height: auto; min-height: 280px; }
+            .chat-widget-btn { right: 20px; bottom: 20px; width: 50px; height: 50px; }
+            .chat-window { width: 90%; right: 5%; bottom: 80px; height: 400px; }
+            .process-node { display: none; }
+            .timeline-content { width: 90% !important; text-align: left !important; margin-left: auto !important; margin-right: 0 !important; border-left: 4px solid var(--tech-cyan) !important; border-right: 1px solid #e2e8f0 !important; }
+            .timeline-line { left: 20px; }
+            .timeline-dot { left: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 배경 요소 -->
+    <div class="bg-grid"></div>
+
+    <!-- 1. 수율 카운터 (Yield Rate) -->
+    <div class="yield-counter">
+        <div class="yield-label">TARGET YIELD</div>
+        <div>
+            <span class="yield-number" id="yield-display">00.0</span>
+            <span class="yield-percent">%</span>
+        </div>
+    </div>
+
+    <!-- 2. 웨이퍼 맵 내비게이션 -->
+    <div class="wafer-nav-container">
+        <div class="wafer-disk">
+            <div class="wafer-grid">
+                <!-- 5개 섹션으로 조정됨 -->
+                <div class="wafer-chip active" id="chip-intro"></div>
+                <div class="wafer-chip" id="chip-about"></div>
+                <div class="wafer-chip" id="chip-history"></div>
+                <div class="wafer-chip" id="chip-specs"></div>
+                <div class="wafer-chip" id="chip-contact"></div>
+            </div>
+        </div>
+        <div class="mt-3 font-mono-tech text-[10px] text-gray-400">WAFER MAP</div>
+    </div>
+
+    <!-- 3. Gemini AI Chat Widget -->
+    <div class="chat-widget-btn" onclick="toggleChat()">
+        <i class="fa-solid fa-robot"></i>
+    </div>
+
+    <div class="chat-window" id="chat-window">
+        <div class="chat-header">
+            <span><i class="fa-solid fa-microchip mr-2"></i>AI LAB ASSISTANT</span>
+            <i class="fa-solid fa-xmark cursor-pointer" onclick="toggleChat()"></i>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="msg-ai">
+                안녕하세요! 김연수 엔지니어의 AI 어시스턴트입니다. ✨<br>
+                포트폴리오 내용이나 반도체 관련해서 궁금한 점이 있으신가요?
+            </div>
+        </div>
+        <div class="typing-indicator" id="typing-indicator">AI analyzing data...</div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chat-input" placeholder="질문을 입력하세요..." onkeypress="handleKeyPress(event)">
+            <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <!-- 가로 스크롤 래퍼 -->
+    <div id="scroll-container">
+
+        <!-- 섹션 1: 헤더 (Intro) -->
+        <section class="section" id="intro">
+            <canvas id="intro-canvas"></canvas>
+
+            <!-- Floating Process Nodes -->
+            <div class="process-node" style="top: 20%; left: 20%;" onclick="toggleNode(this)">
+                <i class="fa-solid fa-layer-group mr-1"></i> DEPOSITION
+            </div>
+            <div class="process-node" style="top: 25%; right: 20%; animation-delay: 1s;" onclick="toggleNode(this)">
+                <i class="fa-solid fa-eraser mr-1"></i> ETCHING
+            </div>
+            <div class="process-node" style="bottom: 30%; left: 15%; animation-delay: 2s;" onclick="toggleNode(this)">
+                <i class="fa-solid fa-sun mr-1"></i> LITHOGRAPHY
+            </div>
+            <div class="process-node" style="bottom: 35%; right: 15%; animation-delay: 1.5s;" onclick="toggleNode(this)">
+                <i class="fa-solid fa-box mr-1"></i> PACKAGING
+            </div>
+
+            <div class="z-10 text-center relative px-4">
+                <div class="inline-block px-3 py-1 mb-6 border border-gray-200 rounded-full bg-white shadow-sm">
+                    <span class="font-mono-tech text-xs text-blue-600 font-bold tracking-widest">FAB PROCESS READY</span>
+                </div>
+                
+                <div class="glitch-wrapper">
+                    <h1 class="glitch-text font-tech text-7xl md:text-9xl font-black mb-4 tracking-tight text-gray-900 leading-tight" data-text="KIM YEON SU">
+                        KIM<br><span class="text-[color:var(--primary-blue)]">YEON SU</span>
+                    </h1>
+                </div>
+                
+                <p class="text-xl md:text-2xl text-gray-600 font-light tracking-wide mb-8">
+                    Department of <span class="font-bold text-gray-800">Semiconductor Engineering</span>
+                </p>
+
+                <div class="control-panel">
+                    <div class="panel-btn" onclick="runSystemCheck(this)">
+                        <div class="btn-face"><i class="fa-solid fa-stethoscope"></i></div>
+                        <div class="btn-label">SYS CHECK</div>
+                    </div>
+                    <div class="panel-btn active" onclick="togglePower(this)">
+                        <div class="btn-face"><i class="fa-solid fa-power-off"></i></div>
+                        <div class="btn-label">POWER</div>
+                    </div>
+                    <div class="panel-btn" onclick="scrollToNext()">
+                        <div class="btn-face"><i class="fa-solid fa-play"></i></div>
+                        <div class="btn-label">START FAB</div>
+                    </div>
+                </div>
+                <div id="sys-check-msg" class="mt-4 font-mono-tech text-xs text-green-600 font-bold hidden">
+                    <i class="fa-solid fa-spinner fa-spin mr-2"></i> DIAGNOSTIC RUNNING...
+                </div>
+            </div>
+            <div class="conveyor-line"></div>
+        </section>
+
+        <!-- 섹션 2: About (프로필) -->
+        <section class="section" id="about">
+            <div class="max-w-6xl w-full px-8 flex flex-col md:flex-row items-center gap-16 z-10">
+                <div class="relative w-80 h-80 flex-shrink-0">
+                    <div class="absolute inset-0 rounded-full border border-gray-200"></div>
+                    <div class="absolute -inset-4 border-t-2 border-b-2 border-[color:var(--primary-blue)] rounded-full animate-[spin_10s_linear_infinite] opacity-30"></div>
+                    <div class="w-full h-full rounded-full overflow-hidden border-4 border-white shadow-xl relative z-10 bg-gray-100">
+                        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80" alt="Semiconductor Wafer" class="w-full h-full object-cover">
+                        <div class="circuit-overlay"></div>
+                    </div>
+                    <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 bg-white border border-gray-200 px-4 py-2 rounded-full shadow-lg text-center min-w-[150px]">
+                        <div class="text-[10px] text-gray-400 font-mono-tech">MATERIAL SPEC</div>
+                        <div class="text-sm font-bold text-[color:var(--primary-blue)]">300mm Si WAFER</div>
+                    </div>
+                </div>
+                <div class="text-left flex-1">
+                    <div class="mb-8">
+                        <span class="font-mono-tech text-[color:var(--primary-blue)] text-sm font-bold"># STEP 01. DEPOSITION</span>
+                        <h2 class="text-4xl font-bold text-gray-900 mt-2">지식을 증착하다</h2>
+                    </div>
+                    <div class="space-y-6 text-gray-600 leading-relaxed text-lg font-light">
+                        <p>
+                            반도체 공정의 핵심이 얇은 박막을 균일하게 쌓아 올리는 '증착(Deposition)'에 있듯,
+                            저는 1학년 자유전공의 넓은 경험 위에 <strong>반도체공학</strong>이라는 전문성을 
+                            빈틈없이 쌓아올리고 있습니다.
+                        </p>
+                        <p>
+                            나노 단위의 오차도 허용하지 않는 엔지니어의 마인드로,
+                            <strong>수율 100%</strong>의 완벽한 성장을 목표로 합니다.
+                        </p>
+                    </div>
+                    <div class="mt-8 flex gap-3">
+                        <span class="px-3 py-1 bg-blue-50 text-[color:var(--primary-blue)] text-sm font-bold rounded-md">#꼼꼼함</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-bold rounded-md">#끈기</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-600 text-sm font-bold rounded-md">#분석적</span>
+                    </div>
+                </div>
+            </div>
+            <div class="conveyor-line"></div>
+        </section>
+
+        <!-- [NEW] 섹션 3: History (타임라인) -->
+        <section class="section" id="history">
+            <div class="max-w-4xl w-full px-6 z-10 h-full flex flex-col justify-center">
+                <div class="text-center mb-4">
+                    <span class="font-mono-tech text-[color:var(--primary-blue)] text-sm font-bold"># STEP 01-1. PROCESS FLOW</span>
+                    <h2 class="text-4xl font-bold text-gray-900 mt-1">ENGINEERING HISTORY</h2>
+                    <p class="text-xs text-gray-400 mt-2 font-mono-tech"><i class="fa-solid fa-computer-mouse mr-1"></i> SCROLL TO VIEW DETAILS</p>
+                </div>
+                
+                <!-- [수정] 스크롤 이벤트 감지를 위한 ID 부여 및 높이 제한 -->
+                <div class="timeline-container" id="history-timeline">
+                    <div class="timeline-line"></div>
+
+                    <!-- [NEW] 초등학교 -->
+                    <div class="timeline-item" style="transition-delay: 0.1s;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="text-gray-400 font-bold text-lg block mb-1">Elementary</span>
+                            <h3 class="font-bold text-gray-800">수송초등학교 졸업</h3>
+                        </div>
+                    </div>
+
+                    <!-- [NEW] 중학교 -->
+                    <div class="timeline-item" style="transition-delay: 0.2s;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="text-gray-400 font-bold text-lg block mb-1">Middle School</span>
+                            <h3 class="font-bold text-gray-800">수송중학교 졸업</h3>
+                        </div>
+                    </div>
+
+                    <!-- [NEW] 고등학교 -->
+                    <div class="timeline-item" style="transition-delay: 0.3s;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="text-gray-400 font-bold text-lg block mb-1">High School</span>
+                            <h3 class="font-bold text-gray-800">성신여자고등학교 졸업</h3>
+                        </div>
+                    </div>
+                    
+                    <!-- Item 1 -->
+                    <div class="timeline-item" style="transition-delay: 0.4s;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="text-[color:var(--primary-blue)] font-bold text-xl block mb-1">2022</span>
+                            <h3 class="font-bold text-gray-800">인제대학교 자유전공학부 입학</h3>
+                            <p class="text-gray-500 text-sm mt-2">
+                                공학적 기초 소양을 다지며 다양한 전공 탐색.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Item 2 -->
+                    <div class="timeline-item" style="transition-delay: 0.5s;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="text-[color:var(--primary-blue)] font-bold text-xl block mb-1">2023</span>
+                            <h3 class="font-bold text-gray-800">반도체공학과 전공 진입</h3>
+                            <p class="text-gray-500 text-sm mt-2">
+                                회로이론, 반도체물성 등 전공 심화 학습 시작.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Item 3 -->
+                    <div class="timeline-item" style="transition-delay: 0.6s;">
+                        <div class="timeline-dot"></div>
+                        <div class="timeline-content">
+                            <span class="text-[color:var(--primary-blue)] font-bold text-xl block mb-1">2023 Winter</span>
+                            <h3 class="font-bold text-gray-800">고려대학교 연구실 인턴십</h3>
+                            <p class="text-gray-500 text-sm mt-2">
+                                이인환 교수님 연구실. 마이크로 LED 소자 제작 공정 참여.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 4 -->
+                    <div class="timeline-item" style="transition-delay: 0.7s;">
+                        <div class="timeline-dot bg-white border-[color:var(--primary-blue)]"></div>
+                        <div class="timeline-content border-l-4 border-gray-300">
+                            <span class="text-gray-400 font-bold text-xl block mb-1">2024 (Now)</span>
+                            <h3 class="font-bold text-gray-800">반도체공학과 3학년 재학</h3>
+                            <p class="text-gray-500 text-sm mt-2">
+                                공정 실습 및 심화 전공 과정을 통해 실무 역량 강화 중.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="conveyor-line"></div>
+        </section>
+
+        <!-- 섹션 4: Specs (칩 패키징 게임) -->
+        <section class="section" id="specs">
+            <div class="w-full max-w-7xl px-8 z-10">
+                <div class="flex items-end justify-between mb-12 border-b border-gray-200 pb-4">
+                    <div>
+                        <span class="font-mono-tech text-[color:var(--primary-blue)] text-sm font-bold"># STEP 02. PACKAGING</span>
+                        <h2 class="text-4xl font-bold text-gray-900 mt-1">MODULE TEST (PROJECTS)</h2>
+                    </div>
+                    <div class="font-mono-tech text-gray-400 text-xs animate-pulse">
+                        <i class="fa-solid fa-arrow-pointer mr-1"></i> CLICK TO UNLOCK DATA
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Card 1 -->
+                    <div class="game-card group" onclick="startProcess(this)">
+                        <div class="card-face-locked">
+                            <i class="fa-solid fa-trophy text-4xl text-gray-300 mb-4 group-hover:text-[color:var(--primary-blue)] transition-colors"></i>
+                            <div class="font-mono-tech text-gray-500 font-bold mb-2">ACTIVITY LOG</div>
+                            <div class="px-4 py-2 bg-blue-50 text-[color:var(--primary-blue)] text-xs font-bold rounded-full animate-pulse border border-blue-200 flex items-center gap-2 shadow-sm group-hover:bg-[color:var(--primary-blue)] group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-arrow-pointer"></i> CLICK TO UNLOCK
+                            </div>
+                        </div>
+                        <div class="card-face-process">
+                            <div class="font-mono-tech font-bold text-xl mb-2">LOADING...</div>
+                            <div class="w-3/4 h-1 bg-white/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-white progress-bar-fill w-0"></div>
+                            </div>
+                        </div>
+                        <div class="card-face-content">
+                            <div class="font-mono-tech text-xs text-green-500 font-bold mb-2">● PASSED</div>
+                            <h3 class="text-xl font-bold mb-3 text-gray-800">테니스 동아리 우승</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                교내 테니스 대회 우승. <br>
+                                "공정 라인에서의 체력과 끈기는 코트 위에서 길러졌습니다."
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Card 2 -->
+                    <div class="game-card group" onclick="startProcess(this)">
+                        <div class="card-face-locked">
+                            <i class="fa-solid fa-earth-americas text-4xl text-gray-300 mb-4 group-hover:text-[color:var(--primary-blue)] transition-colors"></i>
+                            <div class="font-mono-tech text-gray-500 font-bold mb-2">GLOBAL EXP</div>
+                            <div class="px-4 py-2 bg-blue-50 text-[color:var(--primary-blue)] text-xs font-bold rounded-full animate-pulse border border-blue-200 flex items-center gap-2 shadow-sm group-hover:bg-[color:var(--primary-blue)] group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-arrow-pointer"></i> CLICK TO UNLOCK
+                            </div>
+                        </div>
+                        <div class="card-face-process">
+                            <div class="font-mono-tech font-bold text-xl mb-2">CONNECTING...</div>
+                            <div class="w-3/4 h-1 bg-white/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-white progress-bar-fill w-0"></div>
+                            </div>
+                        </div>
+                        <div class="card-face-content">
+                            <div class="font-mono-tech text-xs text-green-500 font-bold mb-2">● PASSED</div>
+                            <h3 class="text-xl font-bold mb-3 text-gray-800">인도네시아 해외봉사</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed">
+                                글로벌 소통 역량 강화.<br>
+                                "언어가 다른 환경에서도 팀워크를 발휘해 프로젝트를 완수했습니다."
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Card 3 -->
+                    <div class="game-card group border-b-4 border-b-[color:var(--primary-blue)]" onclick="startProcess(this)">
+                        <div class="card-face-locked">
+                            <i class="fa-solid fa-microchip text-4xl text-[color:var(--primary-blue)] mb-4 animate-pulse"></i>
+                            <div class="font-mono-tech text-gray-800 font-bold mb-2">CORE SPEC</div>
+                            <div class="px-4 py-2 bg-gray-100 text-gray-600 text-xs font-bold rounded-full animate-pulse border border-gray-300 flex items-center gap-2 shadow-sm group-hover:bg-gray-800 group-hover:text-white transition-colors">
+                                <i class="fa-solid fa-fingerprint"></i> CLICK TO ACCESS
+                            </div>
+                        </div>
+                        <div class="card-face-process">
+                            <div class="font-mono-tech font-bold text-xl mb-2">ANALYZING...</div>
+                            <div class="w-3/4 h-1 bg-white/30 rounded-full overflow-hidden">
+                                <div class="h-full bg-white progress-bar-fill w-0"></div>
+                            </div>
+                        </div>
+                        <div class="card-face-content">
+                            <div class="flex justify-between mb-2">
+                                <span class="font-mono-tech text-xs text-[color:var(--tech-cyan)] font-bold">★ VERIFIED</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-3 text-gray-800">고려대 연구실 인턴</h3>
+                            <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                                이인환 교수님 연구실 인턴십.<br>
+                                <strong>마이크로 LED 소자</strong> 연구 참여 및 데이터 분석 툴 활용 능력 확보.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="conveyor-line"></div>
+        </section>
+
+        <!-- 섹션 5: Contact -->
+        <section class="section" id="contact">
+            <div class="text-center z-10 w-full max-w-2xl px-6">
+                <div class="mb-4 font-mono-tech text-gray-400 text-sm"># FINAL STEP. OUT</div>
+                <h2 class="font-tech text-6xl mb-6 font-bold text-gray-900">CONTACT</h2>
+                <p class="text-gray-500 mb-12 text-lg">
+                    반도체 산업의 미래를 함께 설계하고 싶습니다.
+                </p>
+                <div class="space-y-4">
+                    <a href="mailto:kimyeonsu4523@gmail.com" class="flex items-center justify-between p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-[color:var(--primary-blue)] hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-[color:var(--primary-blue)]">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="text-xs text-gray-400 font-mono-tech">EMAIL</div>
+                                <div class="font-bold text-gray-800">kimyeonsu4523@gmail.com</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-[color:var(--primary-blue)]"></i>
+                    </a>
+                    <a href="https://instagram.com/0s_noe9" target="_blank" class="flex items-center justify-between p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-pink-400 hover:shadow-md transition-all group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 bg-pink-50 rounded-full flex items-center justify-center text-pink-500">
+                                <i class="fa-brands fa-instagram"></i>
+                            </div>
+                            <div class="text-left">
+                                <div class="text-xs text-gray-400 font-mono-tech">INSTAGRAM</div>
+                                <div class="font-bold text-gray-800">@0s_noe9</div>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-arrow-right text-gray-300 group-hover:text-pink-500"></i>
+                    </a>
+                </div>
+            </div>
+            <footer class="absolute bottom-4 w-full text-center border-t border-gray-100 pt-4">
+                <p class="text-[10px] text-gray-400 font-mono-tech">
+                    © 2024 KIM YEON SU. POWERED BY GEMINI AI.
+                </p>
+            </footer>
+        </section>
+
+    </div>
+
+    <script>
+        const apiKey = "";
+        const container = document.querySelector("#scroll-container");
+        const yieldDisplay = document.getElementById('yield-display');
+        const chips = [
+            document.getElementById('chip-intro'),
+            document.getElementById('chip-about'),
+            document.getElementById('chip-history'), 
+            // skills removed
+            document.getElementById('chip-specs'),
+            document.getElementById('chip-contact')
+        ];
+        
+        let scrollPosition = 0;
+        let maxScroll = 0;
+        const totalSections = 5; // Reduced to 5
+
+        function updateMaxScroll() {
+            maxScroll = container.scrollWidth - window.innerWidth;
+        }
+
+        updateMaxScroll();
+        window.addEventListener('resize', updateMaxScroll);
+
+        function handleScroll(delta) {
+            scrollPosition += delta;
+            if (scrollPosition < 0) scrollPosition = 0;
+            if (scrollPosition > maxScroll) scrollPosition = maxScroll;
+            
+            container.style.transform = `translateX(-${scrollPosition}px)`;
+
+            const currentSectionIndex = Math.round((scrollPosition / maxScroll) * (totalSections - 1));
+            
+            chips.forEach((chip, index) => {
+                if(index <= currentSectionIndex) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+
+            const progress = scrollPosition / maxScroll;
+            let yieldRate = (progress * 99.9).toFixed(1);
+            if(yieldRate > 99.9) yieldRate = 99.9;
+            yieldDisplay.innerText = yieldRate.padStart(4, '0');
+
+            checkSectionAnimations();
+        }
+        
+        const historySection = document.getElementById('history');
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        
+        function checkSectionAnimations() {
+            const rect = historySection.getBoundingClientRect();
+            if (rect.left < window.innerWidth * 0.8 && rect.right > window.innerWidth * 0.2) {
+                timelineItems.forEach((item) => {
+                     item.classList.add('visible');
+                });
+            }
+        }
+
+
+        if (window.matchMedia("(min-width: 768px)").matches) {
+            window.addEventListener("wheel", (evt) => {
+                // [수정] 중요! 타임라인 컨테이너 내부에서 스크롤 시 가로 이동 로직을 막음
+                if (evt.target.closest('#history-timeline')) {
+                    // 여기서 return하면 브라우저 기본 동작(세로 스크롤)이 실행됨
+                    // 단, 상위 이벤트 전파를 막아야 할 수도 있으나, return만으로도 handleScroll 호출을 막을 수 있음.
+                    return; 
+                }
+                
+                evt.preventDefault();
+                handleScroll(evt.deltaY);
+            }, { passive: false });
+        }
+
+        window.scrollToNext = function() {
+            if (window.matchMedia("(min-width: 768px)").matches) {
+                const oneSectionWidth = window.innerWidth;
+                handleScroll(oneSectionWidth);
+            }
+        }
+
+        window.startProcess = function(card) {
+            if(card.classList.contains('is-unlocked') || card.classList.contains('is-processing')) return;
+            card.classList.add('is-processing');
+            const bar = card.querySelector('.progress-bar-fill');
+            setTimeout(() => { bar.style.transition = 'width 1s linear'; bar.style.width = '100%'; }, 50);
+            setTimeout(() => {
+                card.classList.remove('is-processing');
+                card.classList.add('is-unlocked');
+            }, 1200);
+        };
+
+        const canvas = document.getElementById('intro-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let lines = [];
+
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let lastX = 0, lastY = 0;
+        document.querySelector('#intro').addEventListener('mousemove', (e) => {
+            const currentX = e.clientX;
+            const currentY = e.clientY;
+            
+            if(Math.abs(currentX - lastX) + Math.abs(currentY - lastY) > 20) {
+                lines.push({
+                    x: currentX, y: currentY, 
+                    life: 1.0, 
+                    angle: Math.random() * Math.PI * 2
+                });
+                lastX = currentX; lastY = currentY;
+            }
+        });
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.strokeStyle = '#0055ff';
+            ctx.lineWidth = 1;
+            
+            for(let i = 0; i < lines.length; i++) {
+                let l = lines[i];
+                ctx.beginPath();
+                ctx.moveTo(l.x, l.y);
+                ctx.lineTo(l.x + Math.cos(l.angle) * 30, l.y + Math.sin(l.angle) * 30);
+                
+                ctx.globalAlpha = l.life;
+                ctx.stroke();
+                l.life -= 0.02;
+            }
+            lines = lines.filter(l => l.life > 0);
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+
+        window.toggleNode = function(el) {
+            el.classList.toggle('active');
+            if(el.classList.contains('active')) {
+                el.innerHTML = '<i class="fa-solid fa-check mr-1"></i> PROCESS OK';
+            }
+        };
+
+        window.togglePower = function(btn) {
+            btn.classList.toggle('active');
+            if(!btn.classList.contains('active')) {
+                document.body.style.filter = 'grayscale(100%) brightness(0.5)';
+            } else {
+                document.body.style.filter = 'none';
+            }
+        };
+
+        window.runSystemCheck = function(btn) {
+            if(btn.classList.contains('active')) return;
+            btn.classList.add('active');
+            const msg = document.getElementById('sys-check-msg');
+            msg.classList.remove('hidden');
+            setTimeout(() => {
+                msg.innerHTML = '<i class="fa-solid fa-check mr-2"></i> ALL SYSTEMS GO';
+                msg.classList.replace('text-green-600', 'text-blue-600');
+            }, 2000);
+        };
+
+        function toggleChat() {
+            document.getElementById('chat-window').classList.toggle('open');
+            if(document.getElementById('chat-window').classList.contains('open')) {
+                document.getElementById('chat-input').focus();
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            const messagesDiv = document.getElementById('chat-messages');
+            const loadingIndicator = document.getElementById('typing-indicator');
+
+            if (!message) return;
+
+            messagesDiv.innerHTML += `<div class="message msg-user">${message}</div>`;
+            input.value = '';
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            loadingIndicator.style.display = 'block';
+
+            try {
+                const context = `
+                    You are an AI Lab Assistant for Kim Yeon-su's Portfolio website.
+                    Answer the visitor's questions professionally, concisely, and enthusiastically.
+                    Profile: Name: Kim Yeon-su, Age: 24, Major: Semiconductor Engineering, Inje Univ.
+                    Key Exp: Tennis Club Winner, Indonesia Volunteer, Internship at Korea Univ (Micro LED).
+                    Language: Korean.
+                `;
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: context + "\n\nUser Question: " + message }] }]
+                    })
+                });
+
+                const data = await response.json();
+                const aiResponse = data.candidates[0].content.parts[0].text;
+
+                loadingIndicator.style.display = 'none';
+                messagesDiv.innerHTML += `<div class="message msg-ai">${aiResponse.replace(/\n/g, '<br>')}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            } catch (error) {
+                loadingIndicator.style.display = 'none';
+                messagesDiv.innerHTML += `<div class="message msg-ai">System Error. Try again.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
